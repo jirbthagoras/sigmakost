@@ -19,6 +19,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // Set application locale to Indonesian
+        app()->setLocale('id');
     }
 }
