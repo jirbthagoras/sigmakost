@@ -89,23 +89,50 @@
                         </div>
                     </div>
 
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="latitude" class="form-label">Latitude</label>
-                            <input type="number" step="any" class="form-control @error('latitude') is-invalid @enderror" 
-                                   id="latitude" name="latitude" value="{{ old('latitude') }}">
-                            @error('latitude')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+                    <!-- Map Location Selector -->
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <i class="fas fa-map-marker-alt text-primary"></i> Pilih Lokasi Kost
+                        </label>
+                        <div class="map-container">
+                            <div class="map-search mb-2">
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="address-search" 
+                                           placeholder="Cari alamat atau klik pada peta..."
+                                           onkeypress="if(event.key==='Enter'){event.preventDefault();searchAddress();}">
+                                    <button type="button" class="btn btn-outline-primary" onclick="searchAddress()">
+                                        <i class="fas fa-search"></i> Cari
+                                    </button>
+                                </div>
+                            </div>
+                            <div id="map" class="map-display"></div>
+                            <div class="map-info mt-2">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <small class="text-muted">
+                                            <i class="fas fa-info-circle"></i> 
+                                            Klik pada peta untuk memilih lokasi atau gunakan pencarian alamat
+                                        </small>
+                                    </div>
+                                    <div class="col-md-6 text-end">
+                                        <small class="text-muted" id="coordinates-display">
+                                            Koordinat akan muncul setelah memilih lokasi
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="longitude" class="form-label">Longitude</label>
-                            <input type="number" step="any" class="form-control @error('longitude') is-invalid @enderror" 
-                                   id="longitude" name="longitude" value="{{ old('longitude') }}">
-                            @error('longitude')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
+                        
+                        <!-- Hidden inputs for latitude and longitude -->
+                        <input type="hidden" id="latitude" name="latitude" value="{{ old('latitude') }}">
+                        <input type="hidden" id="longitude" name="longitude" value="{{ old('longitude') }}">
+                        
+                        @error('latitude')
+                            <div class="text-danger small mt-1">{{ $message }}</div>
+                        @enderror
+                        @error('longitude')
+                            <div class="text-danger small mt-1">{{ $message }}</div>
+                        @enderror
                     </div>
                 </div>
             </div>
@@ -230,7 +257,46 @@
 </form>
 @endsection
 
+@push('styles')
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" 
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" 
+      crossorigin=""/>
+
+<style>
+.map-container {
+    border: 1px solid #e3e6f0;
+    border-radius: 8px;
+    padding: 15px;
+    background: #f8f9fc;
+}
+
+.map-display {
+    height: 400px;
+    width: 100%;
+    border-radius: 6px;
+    border: 1px solid #d1d3e2;
+}
+
+.map-search .input-group {
+    max-width: 400px;
+}
+
+.coordinates-info {
+    background: rgba(78, 115, 223, 0.1);
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+}
+</style>
+@endpush
+
 @push('scripts')
+<!-- Leaflet JavaScript -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" 
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" 
+        crossorigin=""></script>
+
 <script>
 document.getElementById('images').addEventListener('change', function(e) {
     const preview = document.getElementById('image-preview');
@@ -266,5 +332,91 @@ document.getElementById('room_count').addEventListener('input', function() {
     }
     availableRooms.max = this.value;
 });
+
+// Global variables for map functionality
+let mapInstance = null;
+let markerInstance = null;
+
+// Map functionality
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize map centered on Indonesia (Jakarta)
+    const defaultLat = -6.2088;
+    const defaultLng = 106.8456;
+    
+    mapInstance = L.map('map').setView([defaultLat, defaultLng], 10);
+    
+    // Add OpenStreetMap tiles
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors',
+        maxZoom: 19
+    }).addTo(mapInstance);
+    
+    // Handle map click
+    mapInstance.on('click', function(e) {
+        addMarker(e.latlng.lat, e.latlng.lng);
+    });
+    
+    // Set initial marker if coordinates exist
+    const initialLat = document.getElementById('latitude').value;
+    const initialLng = document.getElementById('longitude').value;
+    if (initialLat && initialLng) {
+        addMarker(parseFloat(initialLat), parseFloat(initialLng));
+        mapInstance.setView([initialLat, initialLng], 15);
+    }
+});
+
+// Function to update coordinates
+function updateCoordinates(lat, lng) {
+    document.getElementById('latitude').value = lat;
+    document.getElementById('longitude').value = lng;
+    document.getElementById('coordinates-display').textContent = `Lat: ${lat.toFixed(6)}, Lng: ${lng.toFixed(6)}`;
+}
+
+// Function to add/move marker
+function addMarker(lat, lng) {
+    if (markerInstance) {
+        markerInstance.setLatLng([lat, lng]);
+    } else {
+        markerInstance = L.marker([lat, lng], {
+            draggable: true
+        }).addTo(mapInstance);
+        
+        // Handle marker drag
+        markerInstance.on('dragend', function(e) {
+            const position = e.target.getLatLng();
+            updateCoordinates(position.lat, position.lng);
+        });
+    }
+    updateCoordinates(lat, lng);
+}
+
+// Address search function
+function searchAddress() {
+    const address = document.getElementById('address-search').value;
+    if (!address.trim()) return;
+    
+    // Using Nominatim API for geocoding (free)
+    const searchUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&limit=1&countrycodes=id`;
+    
+    fetch(searchUrl)
+        .then(response => response.json())
+        .then(data => {
+            if (data && data.length > 0) {
+                const lat = parseFloat(data[0].lat);
+                const lng = parseFloat(data[0].lon);
+                
+                if (mapInstance) {
+                    mapInstance.setView([lat, lng], 15);
+                    addMarker(lat, lng);
+                }
+            } else {
+                alert('Alamat tidak ditemukan. Silakan coba alamat lain atau klik langsung pada peta.');
+            }
+        })
+        .catch(error => {
+            console.error('Error searching address:', error);
+            alert('Gagal mencari alamat. Silakan coba lagi atau klik langsung pada peta.');
+        });
+}
 </script>
 @endpush

@@ -69,16 +69,45 @@
                     <div class="row mb-3">
                         <div class="col-md-3"><strong>Koordinat:</strong></div>
                         <div class="col-md-9">
-                            {{ $kost->latitude }}, {{ $kost->longitude }}
+                            {{ number_format($kost->latitude, 6) }}, {{ number_format($kost->longitude, 6) }}
                             <a href="https://maps.google.com/?q={{ $kost->latitude }},{{ $kost->longitude }}" 
                                target="_blank" class="btn btn-sm btn-outline-primary ms-2">
-                                <i class="fas fa-map-marker-alt"></i> Lihat di Maps
+                                <i class="fas fa-external-link-alt"></i> Buka di Google Maps
                             </a>
                         </div>
                     </div>
                 @endif
             </div>
         </div>
+
+        <!-- Location Map -->
+        @if($kost->latitude && $kost->longitude)
+            <div class="card shadow mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-map-marker-alt"></i> Lokasi Kost
+                    </h6>
+                    <div>
+                        <small class="text-muted me-3">
+                            Lat: {{ number_format($kost->latitude, 6) }}, Lng: {{ number_format($kost->longitude, 6) }}
+                        </small>
+                        <a href="https://maps.google.com/?q={{ $kost->latitude }},{{ $kost->longitude }}" 
+                           target="_blank" class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-external-link-alt"></i> Google Maps
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div id="map" class="map-display"></div>
+                    <div class="mt-2 text-center">
+                        <small class="text-muted">
+                            <i class="fas fa-info-circle"></i> 
+                            Lokasi aktual kost berdasarkan koordinat yang tersimpan
+                        </small>
+                    </div>
+                </div>
+            </div>
+        @endif
 
         <!-- Additional Information -->
         @if($kost->facilities || $kost->rules)
@@ -283,7 +312,63 @@
 
 @endsection
 
+@push('styles')
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" 
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" 
+      crossorigin=""/>
+
+<style>
+.map-display {
+    height: 350px;
+    width: 100%;
+    border-radius: 6px;
+    border: 1px solid #d1d3e2;
+}
+</style>
+@endpush
+
 @push('scripts')
+<!-- Leaflet JavaScript -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" 
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" 
+        crossorigin=""></script>
+
+<script>
+// Initialize map for read-only display
+@if($kost->latitude && $kost->longitude)
+document.addEventListener('DOMContentLoaded', function() {
+    const lat = {{ $kost->latitude }};
+    const lng = {{ $kost->longitude }};
+    
+    // Initialize map centered on the kost location
+    const map = L.map('map', {
+        zoomControl: true,
+        scrollWheelZoom: true,
+        doubleClickZoom: true,
+        dragging: true
+    }).setView([lat, lng], 15);
+    
+    // Add OpenStreetMap tiles
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors',
+        maxZoom: 19
+    }).addTo(map);
+    
+    // Add marker for the kost location (not draggable since this is view-only)
+    L.marker([lat, lng]).addTo(map)
+        .bindPopup(`
+            <div class="text-center">
+                <strong>{{ $kost->name }}</strong><br>
+                <small class="text-muted">{{ $kost->address }}</small><br>
+                <small class="text-info">Lat: ${lat.toFixed(6)}, Lng: ${lng.toFixed(6)}</small>
+            </div>
+        `)
+        .openPopup();
+});
+@endif
+</script>
+
 <script>
 // Show image in modal
 function showImageModal(imageSrc, kostName) {

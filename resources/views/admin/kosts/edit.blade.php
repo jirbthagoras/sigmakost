@@ -90,23 +90,54 @@
                         </div>
                     </div>
 
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="latitude" class="form-label">Latitude</label>
-                            <input type="number" step="any" class="form-control @error('latitude') is-invalid @enderror" 
-                                   id="latitude" name="latitude" value="{{ old('latitude', $kost->latitude) }}">
-                            @error('latitude')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+                    <!-- Map Location Selector -->
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <i class="fas fa-map-marker-alt text-primary"></i> Lokasi Kost
+                        </label>
+                        <div class="map-container">
+                            <div class="map-search mb-2">
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="address-search" 
+                                           placeholder="Cari alamat atau klik pada peta untuk mengubah lokasi..."
+                                           onkeypress="if(event.key==='Enter'){event.preventDefault();searchAddress();}">
+                                    <button type="button" class="btn btn-outline-primary" onclick="searchAddress()">
+                                        <i class="fas fa-search"></i> Cari
+                                    </button>
+                                </div>
+                            </div>
+                            <div id="map" class="map-display"></div>
+                            <div class="map-info mt-2">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <small class="text-muted">
+                                            <i class="fas fa-info-circle"></i> 
+                                            Klik pada peta untuk mengubah lokasi atau gunakan pencarian alamat
+                                        </small>
+                                    </div>
+                                    <div class="col-md-6 text-end">
+                                        <small class="text-muted" id="coordinates-display">
+                                            @if($kost->latitude && $kost->longitude)
+                                                Lat: {{ number_format($kost->latitude, 6) }}, Lng: {{ number_format($kost->longitude, 6) }}
+                                            @else
+                                                Koordinat akan muncul setelah memilih lokasi
+                                            @endif
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="longitude" class="form-label">Longitude</label>
-                            <input type="number" step="any" class="form-control @error('longitude') is-invalid @enderror" 
-                                   id="longitude" name="longitude" value="{{ old('longitude', $kost->longitude) }}">
-                            @error('longitude')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
+                        
+                        <!-- Hidden inputs for latitude and longitude -->
+                        <input type="hidden" id="latitude" name="latitude" value="{{ old('latitude', $kost->latitude) }}">
+                        <input type="hidden" id="longitude" name="longitude" value="{{ old('longitude', $kost->longitude) }}">
+                        
+                        @error('latitude')
+                            <div class="text-danger small mt-1">{{ $message }}</div>
+                        @enderror
+                        @error('longitude')
+                            <div class="text-danger small mt-1">{{ $message }}</div>
+                        @enderror
                     </div>
                 </div>
             </div>
@@ -180,22 +211,47 @@
 
             <!-- Add New Images -->
             <div class="card shadow mb-4">
-                <div class="card-header">
+                <div class="card-header d-flex justify-content-between align-items-center">
                     <h6 class="m-0 font-weight-bold text-primary">Tambah Gambar Baru</h6>
+                    <small class="text-muted">Drag & drop atau klik untuk memilih</small>
                 </div>
                 <div class="card-body">
-                    <div class="mb-3">
-                        <label for="images" class="form-label">Pilih Gambar</label>
-                        <input type="file" class="form-control @error('images') is-invalid @enderror" 
-                               id="images" name="images[]" multiple accept="image/*">
-                        @error('images')
-                            <div class="invalid-feedback">{{ $message }}</div>
+                    <!-- Enhanced Image Upload Area -->
+                    <div class="image-upload-area mb-4" id="image-upload-area">
+                        <div class="upload-zone" id="upload-zone">
+                            <div class="upload-content text-center">
+                                <i class="fas fa-cloud-upload-alt fa-3x text-primary mb-3"></i>
+                                <h5 class="text-primary mb-2">Tambah Gambar Kost</h5>
+                                <p class="text-muted mb-3">
+                                    <strong>Drag & drop</strong> gambar ke sini atau <strong>klik untuk memilih</strong>
+                                </p>
+                                <button type="button" class="btn btn-outline-primary" onclick="document.getElementById('new_images').click()">
+                                    <i class="fas fa-folder-open"></i> Pilih Gambar
+                                </button>
+                                <input type="file" class="d-none @error('new_images') is-invalid @enderror" 
+                                       id="new_images" name="new_images[]" multiple accept="image/*">
+                            </div>
+                        </div>
+                        @error('new_images')
+                            <div class="invalid-feedback d-block text-center mt-2">{{ $message }}</div>
                         @enderror
-                        <div class="form-text">
-                            Pilih gambar untuk ditambahkan. Format: JPG, PNG, GIF. Maksimal 2MB per gambar.
+                        <div class="form-text text-center mt-2">
+                            <i class="fas fa-info-circle"></i> Format: JPG, PNG, GIF. Maksimal 2MB per gambar. Dapat memilih beberapa gambar sekaligus.
                         </div>
                     </div>
-                    <div id="image-preview" class="row"></div>
+
+                    <!-- Image Preview with Management -->
+                    <div id="image-preview-section" class="d-none">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="mb-0 text-secondary">
+                                <i class="fas fa-images"></i> Preview Gambar (<span id="image-count">0</span>)
+                            </h6>
+                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="clearAllPreviews()">
+                                <i class="fas fa-trash"></i> Hapus Semua
+                            </button>
+                        </div>
+                        <div id="image-preview" class="row"></div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -292,31 +348,305 @@
 </form>
 @endsection
 
+@push('styles')
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" 
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" 
+      crossorigin=""/>
+
+<style>
+.map-container {
+    border: 1px solid #e3e6f0;
+    border-radius: 8px;
+    padding: 15px;
+    background: #f8f9fc;
+}
+
+.map-display {
+    height: 400px;
+    width: 100%;
+    border-radius: 6px;
+    border: 1px solid #d1d3e2;
+}
+
+.map-search .input-group {
+    max-width: 400px;
+}
+
+.image-upload-area {
+    position: relative;
+}
+
+.upload-zone {
+    border: 2px dashed #4e73df;
+    border-radius: 10px;
+    padding: 40px 20px;
+    background-color: #f8f9fc;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.upload-zone:hover, .upload-zone.dragover {
+    border-color: #2e59d9;
+    background-color: #e3ebfe;
+    transform: translateY(-2px);
+}
+
+.upload-zone .upload-content {
+    pointer-events: none;
+}
+
+.image-preview-item {
+    position: relative;
+    overflow: hidden;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: transform 0.2s ease;
+}
+
+.image-preview-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.image-preview-item .remove-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: rgba(220, 53, 69, 0.9);
+    color: white;
+    border: none;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.image-preview-item .remove-btn:hover {
+    background: rgba(220, 53, 69, 1);
+}
+
+.image-size-info {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(transparent, rgba(0,0,0,0.7));
+    color: white;
+    padding: 20px 8px 8px;
+    font-size: 11px;
+}
+</style>
+@endpush
+
 @push('scripts')
+<!-- Leaflet JavaScript -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" 
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" 
+        crossorigin=""></script>
+
 <script>
-document.getElementById('images').addEventListener('change', function(e) {
-    const preview = document.getElementById('image-preview');
-    preview.innerHTML = '';
+// Global variables for map functionality
+let mapInstance = null;
+let markerInstance = null;
+
+// Map functionality
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize map centered on Indonesia (Jakarta) or existing coordinates
+    const initialLat = document.getElementById('latitude').value || -6.2088;
+    const initialLng = document.getElementById('longitude').value || 106.8456;
     
-    Array.from(e.target.files).forEach((file, index) => {
-        if (file.type.startsWith('image/')) {
+    mapInstance = L.map('map').setView([parseFloat(initialLat), parseFloat(initialLng)], initialLat && initialLng ? 15 : 10);
+    
+    // Add OpenStreetMap tiles
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors',
+        maxZoom: 19
+    }).addTo(mapInstance);
+    
+    // Handle map click
+    mapInstance.on('click', function(e) {
+        addMarker(e.latlng.lat, e.latlng.lng);
+    });
+    
+    // Set initial marker if coordinates exist
+    if (initialLat && initialLng && initialLat !== -6.2088) {
+        addMarker(parseFloat(initialLat), parseFloat(initialLng));
+    }
+});
+
+// Function to update coordinates
+function updateCoordinates(lat, lng) {
+    document.getElementById('latitude').value = lat;
+    document.getElementById('longitude').value = lng;
+    document.getElementById('coordinates-display').textContent = `Lat: ${lat.toFixed(6)}, Lng: ${lng.toFixed(6)}`;
+}
+
+// Function to add/move marker
+function addMarker(lat, lng) {
+    if (markerInstance) {
+        markerInstance.setLatLng([lat, lng]);
+    } else {
+        markerInstance = L.marker([lat, lng], {
+            draggable: true
+        }).addTo(mapInstance);
+        
+        // Handle marker drag
+        markerInstance.on('dragend', function(e) {
+            const position = e.target.getLatLng();
+            updateCoordinates(position.lat, position.lng);
+        });
+    }
+    updateCoordinates(lat, lng);
+}
+
+// Address search function
+function searchAddress() {
+    const address = document.getElementById('address-search').value;
+    if (!address.trim()) return;
+    
+    // Using Nominatim API for geocoding (free)
+    const searchUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&limit=1&countrycodes=id`;
+    
+    fetch(searchUrl)
+        .then(response => response.json())
+        .then(data => {
+            if (data && data.length > 0) {
+                const lat = parseFloat(data[0].lat);
+                const lng = parseFloat(data[0].lon);
+                
+                if (mapInstance) {
+                    mapInstance.setView([lat, lng], 15);
+                    addMarker(lat, lng);
+                }
+            } else {
+                alert('Alamat tidak ditemukan. Silakan coba alamat lain atau klik langsung pada peta.');
+            }
+        })
+        .catch(error => {
+            console.error('Error searching address:', error);
+            alert('Gagal mencari alamat. Silakan coba lagi atau klik langsung pada peta.');
+        });
+}
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const uploadZone = document.getElementById('upload-zone');
+    const fileInput = document.getElementById('new_images');
+    const previewSection = document.getElementById('image-preview-section');
+    const preview = document.getElementById('image-preview');
+    const imageCount = document.getElementById('image-count');
+    
+    let selectedFiles = [];
+
+    // File input change handler
+    fileInput.addEventListener('change', handleFileSelect);
+
+    // Drag and drop handlers
+    uploadZone.addEventListener('click', () => fileInput.click());
+    
+    uploadZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadZone.classList.add('dragover');
+    });
+    
+    uploadZone.addEventListener('dragleave', (e) => {
+        e.preventDefault();
+        uploadZone.classList.remove('dragover');
+    });
+    
+    uploadZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadZone.classList.remove('dragover');
+        
+        const files = Array.from(e.dataTransfer.files).filter(file => 
+            file.type.startsWith('image/')
+        );
+        
+        if (files.length > 0) {
+            addFilesToSelection(files);
+        }
+    });
+
+    function handleFileSelect(e) {
+        const files = Array.from(e.target.files);
+        addFilesToSelection(files);
+    }
+
+    function addFilesToSelection(files) {
+        files.forEach(file => {
+            if (file.type.startsWith('image/') && file.size <= 2 * 1024 * 1024) {
+                selectedFiles.push(file);
+            }
+        });
+        
+        updateFileInput();
+        renderPreviews();
+    }
+
+    function updateFileInput() {
+        const dt = new DataTransfer();
+        selectedFiles.forEach(file => dt.items.add(file));
+        fileInput.files = dt.files;
+    }
+
+    function renderPreviews() {
+        preview.innerHTML = '';
+        
+        if (selectedFiles.length === 0) {
+            previewSection.classList.add('d-none');
+            return;
+        }
+        
+        previewSection.classList.remove('d-none');
+        imageCount.textContent = selectedFiles.length;
+        
+        selectedFiles.forEach((file, index) => {
             const reader = new FileReader();
             reader.onload = function(e) {
                 const col = document.createElement('div');
                 col.className = 'col-md-4 mb-3';
+                
+                const sizeInKB = (file.size / 1024).toFixed(1);
+                
                 col.innerHTML = `
-                    <div class="card">
-                        <img src="${e.target.result}" class="card-img-top" style="height: 150px; object-fit: cover;">
-                        <div class="card-body p-2">
-                            <small class="text-muted">${file.name}</small>
+                    <div class="image-preview-item">
+                        <img src="${e.target.result}" class="img-fluid" 
+                             style="height: 150px; width: 100%; object-fit: cover;">
+                        <button type="button" class="remove-btn" onclick="removeFile(${index})">
+                            <i class="fas fa-times"></i>
+                        </button>
+                        <div class="image-size-info">
+                            <div class="text-truncate"><strong>${file.name}</strong></div>
+                            <div>${sizeInKB} KB</div>
                         </div>
                     </div>
                 `;
                 preview.appendChild(col);
             };
             reader.readAsDataURL(file);
-        }
-    });
+        });
+    }
+
+    // Global function to remove files
+    window.removeFile = function(index) {
+        selectedFiles.splice(index, 1);
+        updateFileInput();
+        renderPreviews();
+    };
+
+    // Global function to clear all previews
+    window.clearAllPreviews = function() {
+        selectedFiles = [];
+        updateFileInput();
+        renderPreviews();
+    };
 });
 
 // Auto-update available rooms when room count changes
@@ -333,18 +663,21 @@ function setPrimary(imageId) {
     showConfirm(
         'Konfirmasi Gambar Utama',
         'Set gambar ini sebagai gambar utama?',
-        function() {
+        () => {
             makeRequest(`/admin/kost-images/${imageId}/primary`, 'PATCH')
+                .then(response => response.json())
                 .then(data => {
-                    showToast(data.message || 'Gambar utama berhasil diubah!', 'success');
-                    setTimeout(() => location.reload(), 1000);
+                    if (data.success) {
+                        showToast(data.message, 'success');
+                        setTimeout(() => location.reload(), 1000);
+                    } else {
+                        showToast(data.message || 'Gagal mengubah gambar utama!', 'error');
+                    }
                 })
                 .catch(error => {
                     showToast(error.message || 'Gagal mengubah gambar utama!', 'error');
                 });
-        },
-        'Set Utama',
-        'btn-primary'
+        }
     );
 }
 
@@ -352,12 +685,17 @@ function setPrimary(imageId) {
 function deleteImage(imageId) {
     showConfirm(
         'Konfirmasi Hapus Gambar',
-        'Hapus gambar ini? Aksi ini tidak dapat dibatalkan.',
-        function() {
+        'Yakin ingin menghapus gambar ini? Tindakan ini tidak dapat dibatalkan.',
+        () => {
             makeRequest(`/admin/kost-images/${imageId}`, 'DELETE')
+                .then(response => response.json())
                 .then(data => {
-                    showToast(data.message || 'Gambar berhasil dihapus!', 'success');
-                    setTimeout(() => location.reload(), 1000);
+                    if (data.success) {
+                        showToast(data.message, 'success');
+                        setTimeout(() => location.reload(), 1000);
+                    } else {
+                        showToast(data.message || 'Gagal menghapus gambar!', 'error');
+                    }
                 })
                 .catch(error => {
                     showToast(error.message || 'Gagal menghapus gambar!', 'error');

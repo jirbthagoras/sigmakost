@@ -169,12 +169,14 @@
                                 Kost
                             </a>
                         </li>
-                        <li class="nav-item mt-3">
+                        @if (auth()->user()->role !== 'admin')
+                                                    <li class="nav-item mt-3">
                             <a class="nav-link text-danger" href="{{ route('home') }}">
                                 <i class="fas fa-arrow-left"></i>
                                 Kembali ke Beranda
                             </a>
                         </li>
+                        @endif
                         <li class="nav-item">
                             <form action="{{ route('logout') }}" method="POST" class="d-inline">
                                 @csrf
