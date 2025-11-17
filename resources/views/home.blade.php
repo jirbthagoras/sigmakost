@@ -66,9 +66,14 @@
                     </div>
                 </div>
 
-                <button onclick="showRegister()" class="bg-white text-[#1593E6] hover:bg-[#DDDDDD] px-8 py-4 rounded-lg text-lg font-bold transition-all transform hover:scale-105 shadow-lg">
-                    {{ __('app.get_started_today') }}
-                </button>
+                <div class="flex flex-col sm:flex-row gap-4">
+                    <a href="{{ route('kost.index') }}" class="bg-white text-[#1593E6] hover:bg-[#DDDDDD] px-8 py-4 rounded-lg text-lg font-bold transition-all transform hover:scale-105 shadow-lg text-center">
+                        Browse Kost
+                    </a>
+                    <button onclick="showRegister()" class="bg-white/20 text-white hover:bg-white/30 border-2 border-white px-8 py-4 rounded-lg text-lg font-bold transition-all transform hover:scale-105">
+                        {{ __('app.get_started_today') }}
+                    </button>
+                </div>
             </div>
 
             <!-- Right Content - Auth Forms -->
