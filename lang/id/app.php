@@ -6,14 +6,14 @@ return [
     'welcome_back' => 'Selamat Datang Kembali',
     'create_account' => 'Buat Akun',
     'dashboard' => 'Dasbor',
-    
+
     // Navigation
     'login' => 'Masuk',
     'logout' => 'Keluar',
     'register' => 'Daftar',
     'sign_up' => 'Daftar',
     'sign_in' => 'Masuk',
-    
+
     // Homepage
     'find_perfect_kost' => 'Temukan Kost Sempurna Anda',
     'comfortable_affordable' => 'Temukan akomodasi yang nyaman dan terjangkau dekat kampus atau tempat kerja Anda.',
@@ -22,7 +22,7 @@ return [
     'easy_booking' => 'Pemesanan Mudah',
     'support_24_7' => 'Dukungan 24/7',
     'get_started_today' => 'Mulai Hari Ini',
-    
+
     // Auth Forms
     'email_address' => 'Alamat Email',
     'enter_email' => 'Masukkan email Anda',
@@ -36,14 +36,14 @@ return [
     'already_have_account' => 'Sudah punya akun?',
     'sign_in_account' => 'Masuk ke akun Anda',
     'join_sigmakost' => 'Bergabung dengan SigmaKost hari ini',
-    
+
     // Registration Form
     'full_name' => 'Nama Lengkap',
     'enter_full_name' => 'Masukkan nama lengkap Anda',
     'phone_number' => 'Nomor Telepon',
     'enter_phone_number' => 'Masukkan nomor telepon Anda',
     'create_password' => 'Buat kata sandi',
-    
+
     // Dashboard
     'welcome_user' => 'Selamat datang, :name!',
     'find_manage_bookings' => 'Temukan dan kelola pemesanan kost Anda',
@@ -55,7 +55,7 @@ return [
     'view_bookings' => 'Lihat Pemesanan',
     'payments' => 'Pembayaran',
     'profile' => 'Profil',
-    
+
     // Kost Pages
     'all_categories' => 'Semua Kategori',
     'search_placeholder' => 'Cari berdasarkan nama atau lokasi...',
@@ -82,7 +82,28 @@ return [
     'contact' => 'Kontak',
     'coordinates' => 'Koordinat',
     'no_image' => 'Tidak Ada Gambar',
-    
+
+    // Booking
+    'book_now' => 'Ajukan Sewa',
+    'booking_request' => 'Permintaan Sewa',
+    'start_date' => 'Tanggal Mulai',
+    'duration' => 'Durasi (Bulan)',
+    'status' => 'Status',
+    'pending' => 'Menunggu',
+    'approved' => 'Disetujui',
+    'rejected' => 'Ditolak',
+    'booking_success' => 'Permintaan sewa berhasil dikirim! Menunggu persetujuan admin.',
+    'approve' => 'Setujui',
+    'reject' => 'Tolak',
+    'rejection_reason' => 'Alasan Penolakan',
+    'total_price' => 'Total Harga',
+    'applicant' => 'Pemohon',
+    'kost_name' => 'Nama Kost',
+    'date_requested' => 'Tanggal Pengajuan',
+    'actions' => 'Aksi',
+    'confirm_approve' => 'Apakah Anda yakin ingin menyetujui permintaan ini?',
+    'confirm_reject' => 'Apakah Anda yakin ingin menolak permintaan ini?',
+
     // Validation Messages
     'passwords_not_match' => 'Kata sandi tidak cocok!',
     'credentials_not_match' => 'Kredensial yang diberikan tidak cocok dengan catatan kami.',

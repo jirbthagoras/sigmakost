@@ -8,6 +8,8 @@ use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\KostController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\RentalController;
+use App\Http\Controllers\Admin\RentalController as AdminRentalController;
 
 Route::get('/', function () {
     return view('home');
@@ -37,25 +39,32 @@ Route::get('/kost/{kost}', [UserController::class, 'show'])->name('kost.show');
 // Protected Routes
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/my-bookings', [RentalController::class, 'index'])->name('rentals.index');
+    Route::post('/kost/{kost}/book', [RentalController::class, 'store'])->name('kost.book');
+    Route::post('/kost/{kost}/review', [\App\Http\Controllers\ReviewController::class, 'store'])->name('kost.review');
 });
 
 // Admin Routes
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(function () {
     Route::get('/', [AdminController::class, 'dashboard'])->name('dashboard');
-    
+
     // Category Management
     Route::resource('categories', CategoryController::class);
-    
+
     // Kost Management
     Route::resource('kosts', KostController::class);
-    
+
     // Kost Status Management
     Route::patch('kosts/{kost}/status', [KostController::class, 'updateStatus'])
         ->name('kosts.status');
-    
+
     // Image Management Routes
     Route::delete('kost-images/{image}', [KostController::class, 'deleteImage'])
         ->name('kost-images.destroy');
     Route::patch('kost-images/{image}/primary', [KostController::class, 'setPrimaryImage'])
         ->name('kost-images.primary');
+
+    // Rental Requests Management
+    Route::get('requests', [AdminRentalController::class, 'index'])->name('rentals.index');
+    Route::patch('requests/{rental}/status', [AdminRentalController::class, 'updateStatus'])->name('rentals.status');
 });

@@ -36,6 +36,11 @@ class Kost extends Model
         return $this->belongsTo(User::class, 'created_by');
     }
 
+    public function reviews()
+    {
+        return $this->hasMany(Review::class);
+    }
+
     public function images(): HasMany
     {
         return $this->hasMany(KostImage::class)->orderBy('order');
@@ -53,8 +58,13 @@ class Kost extends Model
 
     public function getPrimaryImageAttribute()
     {
-        return $this->images()->where('is_primary', true)->first() 
-               ?? $this->images()->first();
+        if ($this->relationLoaded('images')) {
+            return $this->images->where('is_primary', true)->first()
+                ?? $this->images->first();
+        }
+
+        return $this->images()->where('is_primary', true)->first()
+            ?? $this->images()->first();
     }
 
     public function scopeActive($query)
