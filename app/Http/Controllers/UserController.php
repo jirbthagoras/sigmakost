@@ -10,13 +10,17 @@ class UserController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Kost::with(['images', 'categories'])
+        $query = Kost::with(['images', 'categories', 'reviews'])
             ->active()
             ->available();
 
         // Filter by search term (name)
         if ($request->filled('search')) {
-            $query->where('name', 'LIKE', '%' . $request->search . '%');
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'LIKE', '%' . $search . '%')
+                    ->orWhere('address', 'LIKE', '%' . $search . '%');
+            });
         }
 
         // Filter by category
@@ -26,7 +30,23 @@ class UserController extends Controller
             });
         }
 
-        $kosts = $query->orderBy('created_at', 'desc')->paginate(12);
+        // Sorting
+        $sort = $request->get('sort', 'newest');
+        switch ($sort) {
+            case 'oldest':
+                $query->orderBy('created_at', 'asc');
+                break;
+            case 'price_asc':
+                $query->orderBy('price_per_month', 'asc');
+                break;
+            case 'price_desc':
+                $query->orderBy('price_per_month', 'desc');
+                break;
+            default: // newest
+                $query->orderBy('created_at', 'desc');
+        }
+
+        $kosts = $query->paginate(12);
         $categories = Category::orderBy('name')->get();
 
         return view('kost.index', compact('kosts', 'categories'));

@@ -27,6 +27,7 @@
     <div class="min-h-screen">
         @yield('content')
     </div>
+    @include('components.popups')
 </body>
 
 </html>

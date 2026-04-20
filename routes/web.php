@@ -26,13 +26,16 @@ Route::get('/test-locale', function () {
     ];
 });
 
-// Authentication Routes
-Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
-Route::post('/login', [LoginController::class, 'login']);
-Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
+// Authentication Routes - Guest only (redirect if already logged in)
+Route::middleware('guest')->group(function () {
+    Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
+    Route::post('/login', [LoginController::class, 'login']);
+    Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
+    Route::post('/register', [RegisterController::class, 'register']);
+});
 
-Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
-Route::post('/register', [RegisterController::class, 'register']);
+// Logout - Auth only
+Route::post('/logout', [LoginController::class, 'logout'])->middleware('auth')->name('logout');
 
 // User Kost Routes (public access)
 Route::get('/kost', [UserController::class, 'index'])->name('kost.index');

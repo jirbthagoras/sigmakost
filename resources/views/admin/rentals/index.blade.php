@@ -50,13 +50,20 @@
                                     <td>
                                         @if($rental->status === 'pending')
                                             <div class="btn-group" role="group">
-                                                <form action="{{ route('admin.rentals.status', $rental) }}" method="POST"
-                                                    class="d-inline" onsubmit="return confirm('{{ __('app.confirm_approve') }}')">
+                                                <form id="approveForm-{{ $rental->id }}"
+                                                    action="{{ route('admin.rentals.status', $rental) }}" method="POST"
+                                                    class="d-inline">
                                                     @csrf
                                                     @method('PATCH')
                                                     <input type="hidden" name="status" value="approved">
-                                                    <button type="submit" class="btn btn-sm btn-success"
-                                                        title="{{ __('app.approve') }}">
+                                                    <button type="button" class="btn btn-sm btn-success" title="{{ __('app.approve') }}"
+                                                        onclick="window.showConfirm({
+                                                                            title: '{{ __('app.approve') }} Permintaan',
+                                                                            message: 'Setujui permintaan sewa dari {{ $rental->user->name }} untuk {{ $rental->kost->name }}?',
+                                                                            confirmText: '{{ __('app.approve') }}',
+                                                                            variant: 'success',
+                                                                            onConfirm: () => document.getElementById('approveForm-{{ $rental->id }}').submit()
+                                                                        })">
                                                         <i class="fas fa-check"></i> {{ __('app.approve') }}
                                                     </button>
                                                 </form>

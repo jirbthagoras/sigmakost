@@ -11,7 +11,7 @@ class PaymentController extends Controller
     public function index()
     {
         $payments = Payment::with(['rental.kost', 'user', 'verifier'])
-            ->orderByRaw("FIELD(status, 'paid', 'unpaid', 'verified')")
+            ->orderByRaw("CASE status WHEN 'paid' THEN 1 WHEN 'unpaid' THEN 2 WHEN 'overdue' THEN 3 WHEN 'verified' THEN 4 ELSE 5 END")
             ->orderBy('due_date')
             ->paginate(20);
 

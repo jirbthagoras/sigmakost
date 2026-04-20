@@ -17,6 +17,7 @@
                                 <th>Jatuh Tempo</th>
                                 <th>Jumlah</th>
                                 <th>Status</th>
+                                <th>Bukti</th>
                                 <th>Aksi</th>
                             </tr>
                         </thead>
@@ -49,17 +50,50 @@
                                             @if($payment->paid_date)
                                                 <br><small class="text-muted">{{ $payment->paid_date->format('d M Y H:i') }}</small>
                                             @endif
+                                            @if($payment->payment_method)
+                                                <br><small class="text-muted">via
+                                                    {{ str_replace('_', ' ', ucwords($payment->payment_method, '_')) }}</small>
+                                            @endif
+                                        @elseif($payment->status === 'overdue')
+                                            <span class="badge bg-danger">Terlambat</span>
                                         @else
-                                            <span class="badge bg-danger">Belum Bayar</span>
+                                            <span class="badge bg-secondary">Belum Bayar</span>
+                                        @endif
+                                    </td>
+                                    <td class="text-center">
+                                        @if($payment->payment_proof)
+                                            @php
+                                                $ext = pathinfo($payment->payment_proof, PATHINFO_EXTENSION);
+                                                $isImage = in_array(strtolower($ext), ['jpg', 'jpeg', 'png']);
+                                            @endphp
+                                            @if($isImage)
+                                                <a href="{{ asset('storage/' . $payment->payment_proof) }}" target="_blank"
+                                                    class="btn btn-sm btn-outline-primary" title="Lihat Bukti">
+                                                    <i class="fas fa-image"></i> Lihat
+                                                </a>
+                                            @else
+                                                <a href="{{ asset('storage/' . $payment->payment_proof) }}" target="_blank"
+                                                    class="btn btn-sm btn-outline-primary" title="Download Bukti">
+                                                    <i class="fas fa-file-pdf"></i> PDF
+                                                </a>
+                                            @endif
+                                        @else
+                                            <span class="text-muted">-</span>
                                         @endif
                                     </td>
                                     <td>
                                         @if($payment->status === 'paid')
-                                            <form action="{{ route('admin.payments.verify', $payment) }}" method="POST" class="d-inline"
-                                                onsubmit="return confirm('Verifikasi pembayaran ini?')">
+                                            <form id="verifyForm-{{ $payment->id }}"
+                                                action="{{ route('admin.payments.verify', $payment) }}" method="POST" class="d-inline">
                                                 @csrf
                                                 @method('PATCH')
-                                                <button type="submit" class="btn btn-sm btn-success">
+                                                <button type="button" class="btn btn-sm btn-success" onclick="window.showConfirm({
+                                                                        title: 'Verifikasi Pembayaran',
+                                                                        message: 'Verifikasi pembayaran Rp {{ number_format($payment->amount, 0, ',', '.') }} dari {{ $payment->user->name }}?',
+                                                                        confirmText: 'Ya, Verifikasi',
+                                                                        variant: 'success',
+                                                                        onConfirm: () => document.getElementById('verifyForm-{{ $payment->id }}').submit()
+                                                                    })">
                                                     <i class="fas fa-check"></i> Verifikasi
                                                 </button>
                                             </form>
