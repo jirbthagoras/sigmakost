@@ -46,6 +46,16 @@ class Rental extends Model
         return $this->belongsTo(User::class, 'approved_by');
     }
 
+    public function review()
+    {
+        return $this->hasOne(\App\Models\Review::class);
+    }
+
+    public function payments()
+    {
+        return $this->hasMany(\App\Models\Payment::class);
+    }
+
     // Scopes
     public function scopePending($query)
     {

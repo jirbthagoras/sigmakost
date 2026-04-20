@@ -11,7 +11,7 @@ class RentalController extends Controller
 {
     public function index()
     {
-        $rentals = Rental::with(['kost', 'kost.images'])
+        $rentals = Rental::with(['kost.images', 'review'])
             ->where('user_id', auth()->id())
             ->latest()
             ->get();

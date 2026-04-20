@@ -58,4 +58,14 @@ class User extends Authenticatable
     {
         return $this->hasMany(Kost::class, 'created_by');
     }
+
+    public function rentals()
+    {
+        return $this->hasMany(Rental::class);
+    }
+
+    public function reviews()
+    {
+        return $this->hasMany(Review::class);
+    }
 }

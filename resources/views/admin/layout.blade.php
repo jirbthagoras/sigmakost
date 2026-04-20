@@ -236,6 +236,13 @@
                                 Permintaan Sewa
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('admin.payments.*') ? 'active' : '' }}"
+                                href="{{ route('admin.payments.index') }}">
+                                <i class="fas fa-money-bill-wave"></i>
+                                Pembayaran
+                            </a>
+                        </li>
                         @if (auth()->user()->role !== 'admin')
                             <li class="nav-item mt-3">
                                 <a class="nav-link text-danger" href="{{ route('home') }}">

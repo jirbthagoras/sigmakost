@@ -34,8 +34,17 @@ class UserController extends Controller
 
     public function show(Kost $kost)
     {
-        $kost->load(['images', 'categories', 'creator']);
-        
-        return view('kost.show', compact('kost'));
+        $kost->load(['images', 'categories', 'creator', 'reviews.user']);
+
+        $existingRental = null;
+        if (auth()->check()) {
+            $existingRental = \App\Models\Rental::where('user_id', auth()->id())
+                ->where('kost_id', $kost->id)
+                ->whereIn('status', ['pending', 'approved'])
+                ->latest()
+                ->first();
+        }
+
+        return view('kost.show', compact('kost', 'existingRental'));
     }
 }

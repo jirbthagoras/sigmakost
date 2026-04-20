@@ -9,7 +9,9 @@ use App\Http\Controllers\Admin\KostController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\RentalController;
+use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\Admin\RentalController as AdminRentalController;
+use App\Http\Controllers\Admin\PaymentController as AdminPaymentController;
 
 Route::get('/', function () {
     return view('home');
@@ -42,6 +44,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/my-bookings', [RentalController::class, 'index'])->name('rentals.index');
     Route::post('/kost/{kost}/book', [RentalController::class, 'store'])->name('kost.book');
     Route::post('/kost/{kost}/review', [\App\Http\Controllers\ReviewController::class, 'store'])->name('kost.review');
+
+    // Payment Routes
+    Route::get('/my-payments', [PaymentController::class, 'index'])->name('payments.index');
+    Route::post('/payments/{payment}/pay', [PaymentController::class, 'pay'])->name('payments.pay');
 });
 
 // Admin Routes
@@ -67,4 +73,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     // Rental Requests Management
     Route::get('requests', [AdminRentalController::class, 'index'])->name('rentals.index');
     Route::patch('requests/{rental}/status', [AdminRentalController::class, 'updateStatus'])->name('rentals.status');
+
+    // Payment Management
+    Route::get('payments', [AdminPaymentController::class, 'index'])->name('payments.index');
+    Route::patch('payments/{payment}/verify', [AdminPaymentController::class, 'verify'])->name('payments.verify');
 });

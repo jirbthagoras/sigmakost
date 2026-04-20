@@ -76,4 +76,17 @@ class Kost extends Model
     {
         return $query->where('available_rooms', '>', 0);
     }
+
+    public function getAverageRatingAttribute()
+    {
+        if ($this->relationLoaded('reviews')) {
+            return $this->reviews->count() > 0
+                ? round($this->reviews->avg('rating'), 1)
+                : null;
+        }
+
+        return $this->reviews()->count() > 0
+            ? round($this->reviews()->avg('rating'), 1)
+            : null;
+    }
 }

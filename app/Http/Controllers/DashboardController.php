@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Kost;
+use App\Models\Rental;
 use App\Models\Category;
 use Illuminate\Http\Request;
 
@@ -14,7 +15,7 @@ class DashboardController extends Controller
         $totalKosts = Kost::active()->count();
         $availableRooms = Kost::active()->sum('available_rooms');
         $categories = Category::orderBy('name')->get();
-        
+
         // Get featured/recent kosts (latest 6 active kosts)
         $featuredKosts = Kost::with(['images', 'categories'])
             ->active()
@@ -22,14 +23,16 @@ class DashboardController extends Controller
             ->latest()
             ->limit(6)
             ->get();
-            
-        // Get user's bookings count (placeholder for future booking system)
-        $userBookings = 0; // TODO: Implement booking system
-        $pendingPayments = 0; // TODO: Implement payment system
+
+        // Get user's real booking stats
+        $userBookings = Rental::where('user_id', auth()->id())->count();
+        $pendingPayments = Rental::where('user_id', auth()->id())
+            ->where('status', 'pending')
+            ->sum('total_price');
 
         return view('dashboard', compact(
             'totalKosts',
-            'availableRooms', 
+            'availableRooms',
             'categories',
             'featuredKosts',
             'userBookings',

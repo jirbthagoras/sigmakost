@@ -144,23 +144,33 @@
                 </div>
                 <div class="card-body">
                     <div class="mb-3">
-                        <label for="facilities" class="form-label">Fasilitas</label>
-                        <textarea class="form-control @error('facilities') is-invalid @enderror" 
-                                  id="facilities" name="facilities" rows="4">{{ old('facilities') }}</textarea>
+                        <label class="form-label">Fasilitas</label>
+                        <div class="tag-input-container" id="facilities-container">
+                            <div class="tag-list" id="facilities-tags"></div>
+                            <input type="text" class="tag-text-input form-control" id="facilities-input"
+                                   placeholder="Ketik fasilitas lalu tekan Enter..."
+                                   onkeydown="handleTagKey(event, 'facilities')">
+                        </div>
+                        <input type="hidden" name="facilities" id="facilities-hidden" value="{{ old('facilities') }}">
                         @error('facilities')
-                            <div class="invalid-feedback">{{ $message }}</div>
+                            <div class="invalid-feedback d-block">{{ $message }}</div>
                         @enderror
-                        <div class="form-text">Pisahkan dengan enter atau koma</div>
+                        <div class="form-text">Tekan Enter untuk menambah item</div>
                     </div>
 
                     <div class="mb-3">
-                        <label for="rules" class="form-label">Aturan Kost</label>
-                        <textarea class="form-control @error('rules') is-invalid @enderror" 
-                                  id="rules" name="rules" rows="4">{{ old('rules') }}</textarea>
+                        <label class="form-label">Aturan Kost</label>
+                        <div class="tag-input-container" id="rules-container">
+                            <div class="tag-list" id="rules-tags"></div>
+                            <input type="text" class="tag-text-input form-control" id="rules-input"
+                                   placeholder="Ketik aturan lalu tekan Enter..."
+                                   onkeydown="handleTagKey(event, 'rules')">
+                        </div>
+                        <input type="hidden" name="rules" id="rules-hidden" value="{{ old('rules') }}">
                         @error('rules')
-                            <div class="invalid-feedback">{{ $message }}</div>
+                            <div class="invalid-feedback d-block">{{ $message }}</div>
                         @enderror
-                        <div class="form-text">Pisahkan dengan enter atau koma</div>
+                        <div class="form-text">Tekan Enter untuk menambah item</div>
                     </div>
                 </div>
             </div>
@@ -287,6 +297,67 @@
     padding: 8px 12px;
     border-radius: 4px;
     font-family: 'Courier New', monospace;
+}
+
+.tag-input-container {
+    border: 1px solid #d1d3e2;
+    border-radius: 6px;
+    padding: 8px;
+    background: #fff;
+    min-height: 46px;
+    cursor: text;
+}
+.tag-input-container:focus-within {
+    border-color: #4e73df;
+    box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
+}
+.tag-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 4px;
+}
+.tag-list:empty { margin-bottom: 0; }
+.tag-chip {
+    display: inline-flex;
+    align-items: center;
+    background: #e8f0fe;
+    color: #1a56db;
+    border: 1px solid #c3d9f7;
+    border-radius: 20px;
+    padding: 4px 10px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    animation: tagIn 0.15s ease;
+}
+@keyframes tagIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.tag-chip .tag-remove {
+    background: none;
+    border: none;
+    color: #1a56db;
+    margin-left: 6px;
+    cursor: pointer;
+    padding: 0 2px;
+    font-size: 1.1rem;
+    line-height: 1;
+    opacity: 0.7;
+}
+.tag-chip .tag-remove:hover { opacity: 1; color: #c53030; }
+.tag-text-input {
+    border: none !important;
+    box-shadow: none !important;
+    padding: 4px 6px !important;
+    font-size: 0.9rem;
+    outline: none;
+    width: 100%;
+    min-width: 120px;
+}
+kbd {
+    background: #eee;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    padding: 1px 5px;
+    font-size: 0.8em;
 }
 </style>
 @endpush
@@ -418,5 +489,61 @@ function searchAddress() {
             alert('Gagal mencari alamat. Silakan coba lagi atau klik langsung pada peta.');
         });
 }
+
+// ---- Tag Input Logic ----
+const tagData = { facilities: [], rules: [] };
+
+function handleTagKey(e, field) {
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        const val = e.target.value.trim();
+        if (val) { addTag(field, val); e.target.value = ''; }
+    }
+}
+
+function addTag(field, text) {
+    if (tagData[field].includes(text)) return;
+    tagData[field].push(text);
+    renderTags(field);
+    syncTags(field);
+}
+
+function removeTag(field, index) {
+    tagData[field].splice(index, 1);
+    renderTags(field);
+    syncTags(field);
+}
+
+function renderTags(field) {
+    const container = document.getElementById(field + '-tags');
+    container.innerHTML = tagData[field].map((t, i) =>
+        `<span class="tag-chip">${escHtml(t)}<button type="button" class="tag-remove" onclick="removeTag('${field}',${i})">&times;</button></span>`
+    ).join('');
+}
+
+function syncTags(field) {
+    document.getElementById(field + '-hidden').value = tagData[field].join(', ');
+}
+
+function escHtml(s) {
+    const d = document.createElement('div'); d.textContent = s; return d.innerHTML;
+}
+
+function initTags(field) {
+    const val = document.getElementById(field + '-hidden').value;
+    if (val.trim()) {
+        tagData[field] = val.split(/[,\n]+/).map(s => s.trim()).filter(Boolean);
+        renderTags(field);
+    }
+    // Focus input when clicking container
+    document.getElementById(field + '-container').addEventListener('click', function() {
+        document.getElementById(field + '-input').focus();
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    initTags('facilities');
+    initTags('rules');
+});
 </script>
 @endpush

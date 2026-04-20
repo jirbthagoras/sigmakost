@@ -3,34 +3,7 @@
 @section('content')
     <div class="min-h-screen bg-gray-50">
         <!-- Navigation -->
-        <nav class="bg-white shadow-sm border-b">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="flex justify-between h-16">
-                    <div class="flex items-center space-x-4">
-                        <a href="{{ route('home') }}" class="text-2xl font-extrabold text-[#1593E6] tracking-tight">
-                            {{ __('app.app_name') }}
-                        </a>
-                    </div>
-                    <div class="flex items-center space-x-4">
-                        <a href="{{ route('dashboard') }}"
-                            class="text-gray-600 hover:text-[#1593E6] px-3 py-2 rounded-md text-sm font-medium">
-                            Dashboard
-                        </a>
-                        <a href="{{ route('rentals.index') }}"
-                            class="text-gray-600 hover:text-[#1593E6] px-3 py-2 rounded-md text-sm font-medium">
-                            Lihat Pemesanan
-                        </a>
-                        <form method="POST" action="{{ route('logout') }}" class="inline">
-                            @csrf
-                            <button type="submit"
-                                class="text-gray-600 hover:text-[#1593E6] px-3 py-2 rounded-md text-sm font-medium">
-                                Logout
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </nav>
+        @include('layouts.navigation')
 
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <h1 class="text-2xl font-bold text-gray-900 mb-6">Riwayat Pemesanan Saya</h1>
@@ -79,7 +52,7 @@
                                             <div class="flex flex-col items-end space-y-2">
                                                 <span
                                                     class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                                                                            {{ $rental->status === 'approved' ? 'bg-green-100 text-green-800' :
+                                                                                            {{ $rental->status === 'approved' ? 'bg-green-100 text-green-800' :
                         ($rental->status === 'rejected' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800') }}">
                                                     {{ ucfirst($rental->status) }}
                                                 </span>
@@ -92,17 +65,13 @@
                                         <!-- Review Section -->
                                         @if($rental->status === 'approved')
                                             <div class="mt-4 border-t pt-4">
-                                                @php
-                                                    $existingReview = \App\Models\Review::where('rental_id', $rental->id)->first();
-                                                @endphp
-
-                                                @if($existingReview)
+                                                @if($rental->review)
                                                     <div class="bg-gray-50 p-3 rounded-md">
                                                         <div class="flex items-center mb-1">
                                                             <span class="text-sm font-medium text-gray-700 mr-2">Ulasan Anda:</span>
                                                             <div class="flex text-yellow-400">
                                                                 @for($i = 1; $i <= 5; $i++)
-                                                                    <svg class="w-4 h-4 {{ $i <= $existingReview->rating ? 'fill-current' : 'text-gray-300' }}"
+                                                                    <svg class="w-4 h-4 {{ $i <= $rental->review->rating ? 'fill-current' : 'text-gray-300' }}"
                                                                         viewBox="0 0 20 20">
                                                                         <path
                                                                             d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
@@ -110,7 +79,7 @@
                                                                 @endfor
                                                             </div>
                                                         </div>
-                                                        <p class="text-sm text-gray-600">{{ $existingReview->comment }}</p>
+                                                        <p class="text-sm text-gray-600">{{ $rental->review->comment }}</p>
                                                     </div>
                                                 @else
                                                     <div x-data="{ open: false }">
